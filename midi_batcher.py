@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 import pretty_midi
 import numpy as np
+import sys
 import os
 
 
 def midi_files_in_dir(dir_name):
     files = []
-    for _, _, f in os.walk(dir_name):
-        files += f
+    for _, _, fs in os.walk(dir_name):
+        files += [os.path.join(dir_name, f) for f in fs]
     return files
 
 
@@ -27,6 +28,7 @@ def generate_input_and_target(dict_keys_time, seq_len=50):
     
        
     """
+    assert dict_keys_time
     # Get the start time and end time
     start_time, end_time = (
         list(dict_keys_time.keys())[0],
@@ -40,25 +42,21 @@ def generate_input_and_target(dict_keys_time, seq_len=50):
         if index_enum < seq_len:
             start_iterate = seq_len - index_enum - 1
             for i in range(start_iterate):  # add 'e' to the seq list.
-                list_append_training.append("e")
+                list_append_training.append([])
                 flag_target_append = True
 
         for i in range(start_iterate, seq_len):
             index_enum = time - (seq_len - i - 1)
             if index_enum in dict_keys_time:
-                list_append_training.append(
-                    ",".join(str(x) for x in dict_keys_time[index_enum])
-                )
+                list_append_training.append(list(dict_keys_time[index_enum]))
             else:
-                list_append_training.append("e")
+                list_append_training.append([])
 
         # add time + 1 to the list_append_target
         if time + 1 in dict_keys_time:
-            list_append_target.append(
-                ",".join(str(x) for x in dict_keys_time[time + 1])
-            )
+            list_append_target.append(list(dict_keys_time[time + 1]))
         else:
-            list_append_target.append("e")
+            list_append_target.append([])
         list_training.append(list_append_training)
         list_target.append(list_append_target)
     return list_training, list_target
@@ -102,7 +100,10 @@ def generate_dict_time_notes(
             midi_pretty_format = pretty_midi.PrettyMIDI(midi_file_name)
             piano_midi = midi_pretty_format.instruments[0]  # Get the piano channels
             piano_roll = piano_midi.get_piano_roll(fs=fs)
-            dict_time_notes[i] = piano_roll
+            if len(piano_roll) == 0:
+                print("File {} is has no notes".format(midi_file_name))
+            else:
+                dict_time_notes[i] = piano_roll
         except Exception as e:
             print(e)
             print("broken file : {}".format(midi_file_name))
@@ -127,8 +128,7 @@ def process_notes_in_song(dict_time_notes, seq_len=50):
     """
     list_of_dict_keys_time = []
 
-    for key in dict_time_notes:
-        sample = dict_time_notes[key]
+    for key, sample in dict_time_notes.items():
         times = np.unique(np.where(sample > 0)[1])
         index = np.where(sample > 0)
         dict_keys_time = {}
@@ -137,7 +137,10 @@ def process_notes_in_song(dict_time_notes, seq_len=50):
             index_where = np.where(index[1] == time)
             notes = index[0][index_where]
             dict_keys_time[time] = notes
-        list_of_dict_keys_time.append(dict_keys_time)
+        if len(times) == 0:
+            print("Song is empty")
+        else:
+            list_of_dict_keys_time.append(dict_keys_time)
     return list_of_dict_keys_time
 
 
@@ -170,15 +173,23 @@ def generate_batch_song(
     """
 
     assert len(list_all_midi) >= batch_music
+    print("Generating time notes...")
     dict_time_notes = generate_dict_time_notes(
         list_all_midi, batch_music, start_index, fs, use_tqdm=use_tqdm
     )
 
+    print("Processing notes...")
     list_musics = process_notes_in_song(dict_time_notes, seq_len)
     collected_list_input, collected_list_target = [], []
 
+    print("Generating input and target sets...")
     for music in list_musics:
         list_training, list_target = generate_input_and_target(music, seq_len)
         collected_list_input += list_training
         collected_list_target += list_target
     return collected_list_input, collected_list_target
+
+
+if __name__ == "__main__":
+    files = midi_files_in_dir(sys.argv[1])
+    print(generate_batch_song(files))
