@@ -50,15 +50,35 @@ loss_criterion = nn.SmoothL1Loss()
 optimizer = t.optim.Adam(model.parameters(), lr=lr)
 
 for epoch in range(n_epochs):
-    optimizer.zero_grad()
-    output, _ = model(input_seq_train)  # Run all the data through
 
-    loss = loss_criterion(output.view(-1), target_seq_train.view(-1))
-    loss.backward()
-    optimizer.step()
+    # Split training data into mini-batches
+    for seq in something:  # TODO: How do we randomly split the data?
 
-    output, _ = model(input_seq_test)
-    test_loss = loss_criterion(output.view(-1), target_seq_test.view(-1))
+        # Even out the lengths of input_seq and target_seq
+        # See https://towardsdatascience.com/taming-lstms-variable-sized-mini-batches-and-why-pytorch-is-good-for-your-health-61d35642972e
+        seq_lens = [len(s) for s in seq]
+        pad_token = [-1 for _ in data_width]
+        batch_size = len(seq)
+        padded = np.ones((batch_size, max(seq_lens))) * pad_token
+
+        for i, l in enumerate(seq_lens):
+            padded[i, :l] = seq[i, :l]
+
+        # Create input and target datasets
+        input_padded = [x[:-1] for x in padded]
+        target_padded = [x[1:] for x in padded]
+
+        # TODO: We could make the model never see the pad values
+
+        # Run the model
+        optimizer.zero_grad()
+        output, _ = model(input_padded)
+
+        loss += loss_criterion(output.view(-1), target_padded.view(-1))
+        loss.backward()
+        optimizer.step()
+
+    # TODO: Test loss on test dataset
 
     if epoch % 1 == 0:
         print(
