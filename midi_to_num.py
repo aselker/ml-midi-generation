@@ -4,7 +4,7 @@ import numpy as np
 import os, os.path
 
 
-def MidiToNum(midifiles):
+def midi_to_num(midifiles):
     dict_notes = {}
     for i in midifiles:
         try:
@@ -16,7 +16,7 @@ def MidiToNum(midifiles):
     return dict_notes
 
 
-def AllMidis(rootdir):
+def all_midis(rootdir):
     midiFiles = []
     for subdir, ___, filename in os.walk(rootdir):
         for files in filename:
@@ -25,7 +25,13 @@ def AllMidis(rootdir):
     return midiFiles
 
 
+def get_random_batch(songs, n):
+    s = list(songs.values())
+    songs_to_use = np.random.choice(len(s), size=n, replace=False)
+    return [s[song] for song in songs_to_use]
+
+
 if __name__ == "__main__":
-    files = AllMidis(sys.argv[1])
-    notes = MidiToNum(files)
-    print(notes)
+    files = all_midis(sys.argv[1])
+    songs = midi_to_num(files)
+    batch = get_random_batch(songs, 3)
