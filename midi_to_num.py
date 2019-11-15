@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+
 import pretty_midi
 import sys
 import numpy as np
 import os, os.path
+import pickle
 
 
 def midi_to_num(midifiles):
@@ -34,4 +37,4 @@ def get_random_batch(songs, n):
 if __name__ == "__main__":
     files = all_midis(sys.argv[1])
     songs = midi_to_num(files)
-    batch = get_random_batch(songs, 3)
+    pickle.dump(list(songs.values()), open(sys.argv[2], "wb"))
