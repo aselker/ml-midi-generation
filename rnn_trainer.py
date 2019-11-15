@@ -7,8 +7,9 @@ import sys
 import numpy as np
 import torch as t
 from torch import nn
+import pickle
 
-from my_model import MyModel
+from rnn_model import RnnModel
 
 assert sys.argv[1]
 assert sys.argv[2]
@@ -16,11 +17,10 @@ assert sys.argv[2]
 dtype = np.float32
 device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
 
-all_data = np.load(sys.argv[1])
+all_data = pickle.load(open(sys.argv[1], "rb"))
 np.random.shuffle(all_data)
 
 data_count = len(all_data)
-data_len = len(all_data[0])
 data_width = len(all_data[0][0])
 
 # Split off some data for testing
@@ -28,16 +28,11 @@ test_data_count = int(data_count / 5)
 train_data = all_data[:-test_data_count]
 test_data = all_data[-test_data_count:]
 
-# Create input and target sequences
-input_seq_train = t.Tensor([xs[:-1] for xs in train_data])
-target_seq_train = t.Tensor([xs[1:] for xs in train_data])
+train_data = t.Tensor(train_data)
+test_data = t.Tensor(test_data)
 
-input_seq_test = t.Tensor([xs[:-1] for xs in test_data])
-target_seq_test = t.Tensor([xs[1:] for xs in test_data])
-
-for x in [input_seq_train, target_seq_train, input_seq_test, target_seq_test]:
-    x.to(device)
-
+train_data.to(device)
+test.to(device)
 
 model = MyModel(data_width, data_width, 200, 4)
 model.to(device)
@@ -53,7 +48,6 @@ for epoch in range(n_epochs):
 
     # Split training data into mini-batches
     for seq in something:  # TODO: How do we randomly split the data?
-
         # Even out the lengths of input_seq and target_seq
         # See https://towardsdatascience.com/taming-lstms-variable-sized-mini-batches-and-why-pytorch-is-good-for-your-health-61d35642972e
         seq_lens = [len(s) for s in seq]
