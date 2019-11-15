@@ -4,7 +4,7 @@ from torch import nn
 
 class RnnModel(nn.Module):
     def __init__(self, input_size, output_size, state_size, n_layers):
-        super(MyModel, self).__init__()
+        super(RnnModel, self).__init__()
         self.state_size = state_size
         self.n_layers = n_layers
 

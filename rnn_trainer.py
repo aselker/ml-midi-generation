@@ -7,6 +7,7 @@ import sys
 import numpy as np
 import torch as t
 from torch import nn
+import torch.utils.data
 import pickle
 
 from rnn_model import RnnModel
@@ -43,6 +44,8 @@ lr = 0.01
 
 loss_criterion = nn.SmoothL1Loss()
 optimizer = t.optim.Adam(model.parameters(), lr=lr)
+
+batches = torch.utils.data.random_split(input_seq_train, sys.argv[3])
 
 for epoch in range(n_epochs):
 
