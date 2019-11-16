@@ -15,6 +15,9 @@ from rnn_model import RnnModel
 assert sys.argv[1]
 assert sys.argv[2]
 
+state_size = 200
+n_layers = 4
+
 dtype = np.float32
 device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
 
@@ -35,7 +38,7 @@ test_data = t.Tensor(test_data)
 train_data.to(device)
 test.to(device)
 
-model = MyModel(data_width, data_width, 200, 4)
+model = MyModel(data_width, data_width, state_size, n_layers)
 model.to(device)
 
 # Define hyperparameters
@@ -45,18 +48,22 @@ lr = 0.01
 loss_criterion = nn.SmoothL1Loss()
 optimizer = t.optim.Adam(model.parameters(), lr=lr)
 
-batches = torch.utils.data.random_split(input_seq_train, sys.argv[3])
+batch_sizes = []
+for i in range(9):
+    first = int(train_data[i])/10
+    
 
 for epoch in range(n_epochs):
 
     # Split training data into mini-batches
+    batches = torch.utils.data.random_split(train_data, batch_sizes)
     for seq in something:  # TODO: How do we randomly split the data?
         # Even out the lengths of input_seq and target_seq
         # See https://towardsdatascience.com/taming-lstms-variable-sized-mini-batches-and-why-pytorch-is-good-for-your-health-61d35642972e
         seq_lens = [len(s) for s in seq]
         pad_token = [-1 for _ in data_width]
-        batch_size = len(seq)
-        padded = np.ones((batch_size, max(seq_lens))) * pad_token
+        current_batch_size = len(seq)
+        padded = np.ones((current_batch_size, max(seq_lens))) * pad_token
 
         for i, l in enumerate(seq_lens):
             padded[i, :l] = seq[i, :l]
