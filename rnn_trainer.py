@@ -91,7 +91,10 @@ for epoch in range(n_epochs):
         loss.backward()
         optimizer.step()
 
-    # TODO: Test loss on test dataset
+    test_input, test_target = prep_data(test_data, data_width)
+    test_state = t.zeros(n_layers, len(test_data), state_size)
+    test_state = test_state.to(device)
+    test_output, _ = model(test_input, test_state)
 
     if epoch % 1 == 0:
         print(
