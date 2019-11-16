@@ -9,7 +9,9 @@ import torch as t
 from torch import nn
 import torch.utils.data
 import pickle
+import random
 
+import midi_to_num
 from rnn_model import RnnModel
 
 assert sys.argv[1]
@@ -27,9 +29,8 @@ def prep_data(seq, data_width):
     current_batch_size = len(seq)
     padded = np.ones((current_batch_size, max(seq_lens), data_width)) * pad_token
 
-    seq = np.asarray(seq)
     for i, l in enumerate(seq_lens):
-        padded[i, :l] = seq[i, :l]
+        padded[i, :l] = seq[i][:l]
 
     # Create input and target datasets
     input_padded = [x[:-1] for x in padded]
@@ -43,22 +44,22 @@ def prep_data(seq, data_width):
     return input_padded, target_padded
 
 
-# Define hyperparameters
+# Define parameters
+data_width = 128
 state_size = 200
 n_layers = 4
 n_epochs = 30
+n_batches = 8
 lr = 0.01
 
-all_data = pickle.load(open(sys.argv[1], "rb"))
-np.random.shuffle(all_data)
-
-data_count = len(all_data)
-data_width = len(all_data[0][0])
+all_files = midi_to_num.all_midis(sys.argv[1])
+data_count = len(all_files)
+print("Using {} files".format(data_count))
 
 # Split off some data for testing
 test_data_count = int(data_count / 5)
-train_data = all_data[:-test_data_count]
-test_data = all_data[-test_data_count:]
+train_files = all_files[:-test_data_count]
+test_files = all_files[-test_data_count:]
 
 model = RnnModel(data_width, data_width, state_size, n_layers)
 model = model.to(device)
@@ -67,8 +68,8 @@ model = model.to(device)
 loss_criterion = nn.SmoothL1Loss()
 optimizer = t.optim.Adam(model.parameters(), lr=lr)
 
-remaining_data_len = len(train_data)
-n_batches = len(train_data)
+# Make batch sizes
+remaining_data_len = len(train_files)
 batch_sizes = [-1 for _ in range(n_batches)]
 for i, b in enumerate(range(n_batches, 0, -1)):
     batch_sizes[i] = round(remaining_data_len / b)
@@ -76,11 +77,20 @@ for i, b in enumerate(range(n_batches, 0, -1)):
 
 for epoch in range(n_epochs):
 
-    # Split training data into mini-batches
-    batches = torch.utils.data.random_split(train_data, batch_sizes)
-    for seq in batches:
+    shuffled_files = all_files
+    random.shuffle(shuffled_files)
+    batches = []
+    for size in batch_sizes:
+        batches.append(shuffled_files[-size:])
+        shuffled_files = shuffled_files[:-size]
+
+    for file_names in batches:
+        songs = midi_to_num.midi_to_num(file_names)
+        seq = list(songs.values())
+
         input_padded, target_padded = prep_data(seq, data_width)
         # Run the model
+        print("Running model...")
         optimizer.zero_grad()
         # Initialize the state to zeros
         state = t.zeros(n_layers, len(seq), state_size)
@@ -90,11 +100,15 @@ for epoch in range(n_epochs):
         loss = loss_criterion(output.view(-1), target_padded.view(-1))
         loss.backward()
         optimizer.step()
+        print("Finished batch.")
 
+    songs = midi_to_num.midi_to_num(test_files)
+    test_data = list(songs.values())
     test_input, test_target = prep_data(test_data, data_width)
     test_state = t.zeros(n_layers, len(test_data), state_size)
     test_state = test_state.to(device)
     test_output, _ = model(test_input, test_state)
+    del (songs, test_data, test_input, test_target)  # Save a little memory
 
     if epoch % 1 == 0:
         print(
@@ -103,6 +117,6 @@ for epoch in range(n_epochs):
             )
         )
 
-params = [data_width, data_width, 200, 4]
+params = [data_width, data_width, state_size, n_layers]
 
 t.save({"state_dict": model.state_dict(), "params": params}, sys.argv[2])
