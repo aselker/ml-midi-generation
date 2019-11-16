@@ -13,12 +13,8 @@ class RnnModel(nn.Module):
         # FC layer
         self.fc = nn.Linear(state_size, output_size)
 
-    def forward(self, x, state=None):
+    def forward(self, x, state):
         batch_size = x.size(0)
-
-        if state is None:
-            # Initialize the state to zeros
-            state = t.zeros(self.n_layers, batch_size, self.state_size)
 
         # Run the RNN, producing outputs and a final state (I think)
         out, state = self.rnn(x, state)

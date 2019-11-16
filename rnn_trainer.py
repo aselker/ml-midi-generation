@@ -32,14 +32,8 @@ test_data_count = int(data_count / 5)
 train_data = all_data[:-test_data_count]
 test_data = all_data[-test_data_count:]
 
-train_data = t.Tensor(train_data)
-test_data = t.Tensor(test_data)
-
-train_data.to(device)
-test.to(device)
-
-model = MyModel(data_width, data_width, state_size, n_layers)
-model.to(device)
+model = RnnModel(data_width, data_width, state_size, n_layers)
+model = model.to(device)
 
 # Define hyperparameters
 n_epochs = 30
@@ -48,23 +42,26 @@ lr = 0.01
 loss_criterion = nn.SmoothL1Loss()
 optimizer = t.optim.Adam(model.parameters(), lr=lr)
 
-batch_sizes = []
-for i in range(9):
-    first = int(train_data[i])/10
-    
+remaining_data_len = len(train_data)
+n_batches = len(train_data)
+batch_sizes = [-1 for _ in range(n_batches)]
+for i, b in enumerate(range(n_batches, 0, -1)):
+    batch_sizes[i] = round(remaining_data_len / b)
+    remaining_data_len -= batch_sizes[i]
 
 for epoch in range(n_epochs):
 
     # Split training data into mini-batches
     batches = torch.utils.data.random_split(train_data, batch_sizes)
-    for seq in something:  # TODO: How do we randomly split the data?
+    for seq in batches:  # TODO: How do we randomly split the data?
         # Even out the lengths of input_seq and target_seq
         # See https://towardsdatascience.com/taming-lstms-variable-sized-mini-batches-and-why-pytorch-is-good-for-your-health-61d35642972e
         seq_lens = [len(s) for s in seq]
-        pad_token = [-1 for _ in data_width]
+        pad_token = -1
         current_batch_size = len(seq)
-        padded = np.ones((current_batch_size, max(seq_lens))) * pad_token
+        padded = np.ones((current_batch_size, max(seq_lens),data_width)) * pad_token
 
+        seq = np.asarray(seq)
         for i, l in enumerate(seq_lens):
             padded[i, :l] = seq[i, :l]
 
@@ -72,13 +69,20 @@ for epoch in range(n_epochs):
         input_padded = [x[:-1] for x in padded]
         target_padded = [x[1:] for x in padded]
 
+        input_padded = t.Tensor(input_padded)
+        target_padded = t.Tensor(target_padded)
+        input_padded = input_padded.to(device)
+        target_padded = target_padded.to(device)
         # TODO: We could make the model never see the pad values
 
         # Run the model
         optimizer.zero_grad()
-        output, _ = model(input_padded)
+        # Initialize the state to zeros
+        state = t.zeros(n_layers, current_batch_size, state_size)
+        state = state.to(device)
+        output, _ = model(input_padded,state)
 
-        loss += loss_criterion(output.view(-1), target_padded.view(-1))
+        loss = loss_criterion(output.view(-1), target_padded.view(-1))
         loss.backward()
         optimizer.step()
 

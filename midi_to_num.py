@@ -15,6 +15,7 @@ def midi_to_num(midifiles):
         except IOError:
             continue
         piano_roll = midi.instruments[0].get_piano_roll()
+        piano_roll = np.transpose(piano_roll)
         dict_notes[i] = piano_roll
     return dict_notes
 
