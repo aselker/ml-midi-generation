@@ -108,6 +108,7 @@ for epoch in range(n_epochs):
     test_state = t.zeros(n_layers, len(test_data), state_size)
     test_state = test_state.to(device)
     test_output, _ = model(test_input, test_state)
+    test_loss = loss_criterion(test_output.view(-1), test_target.view(-1))
     del (songs, test_data, test_input, test_target)  # Save a little memory
 
     if epoch % 1 == 0:
