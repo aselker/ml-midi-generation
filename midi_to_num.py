@@ -36,9 +36,11 @@ def get_random_batch(songs, n):
 
 
 if __name__ == "__main__":
-    print("Loading files...")
-    files = all_midis(sys.argv[1])
-    print("Doing songs...")
-    songs = midi_to_num(files)
-    print("Saving...")
-    pickle.dump(list(songs.values()), open(sys.argv[2], "wb"))
+    print("Reading file...")
+    songs = midi_to_num([sys.argv[1]])
+    if songs == {}:
+        print("File is empty.")
+    else:
+        print("Saving...")
+        song = list(songs.values())[0]
+        pickle.dump(song, open(sys.argv[2], "wb"))
