@@ -48,8 +48,9 @@ def prep_data(seq, data_width):
 data_width = 128
 state_size = 200
 n_layers = 4
-n_epochs = 30
-n_batches = 8
+n_epochs = 20
+n_batches = 40
+test_portion = 0.04
 lr = 0.01
 
 all_files = midi_to_num.all_midis(sys.argv[1])
@@ -57,7 +58,7 @@ data_count = len(all_files)
 print("Using {} files".format(data_count))
 
 # Split off some data for testing
-test_data_count = int(data_count / 5)
+test_data_count = int(data_count * test_portion)
 train_files = all_files[:-test_data_count]
 test_files = all_files[-test_data_count:]
 
