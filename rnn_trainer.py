@@ -77,7 +77,6 @@ for i, b in enumerate(range(n_batches, 0, -1)):
     remaining_data_len -= batch_sizes[i]
 
 for epoch in range(n_epochs):
-
     shuffled_files = all_files
     random.shuffle(shuffled_files)
     batches = []
@@ -85,7 +84,7 @@ for epoch in range(n_epochs):
         batches.append(shuffled_files[-size:])
         shuffled_files = shuffled_files[:-size]
 
-    for file_names in batches:
+    for i, file_names in enumerate(batches):
         songs = midi_to_num.midi_to_num(file_names)
         seq = list(songs.values())
 
@@ -101,7 +100,7 @@ for epoch in range(n_epochs):
         loss = loss_criterion(output.view(-1), target_padded.view(-1))
         loss.backward()
         optimizer.step()
-        print("Finished batch.")
+        print("Finished batch {}.".format(i))
 
     songs = midi_to_num.midi_to_num(test_files)
     test_data = list(songs.values())
