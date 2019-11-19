@@ -50,7 +50,7 @@ def prep_data(seq, data_width):
 data_width = 128
 state_size = 200
 n_layers = 4
-n_epochs = 20
+n_epochs = 120
 n_batches = 1
 test_portion = 0.4
 lr = 0.001

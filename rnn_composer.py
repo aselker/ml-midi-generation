@@ -7,6 +7,7 @@ from torch import nn
 
 from rnn_model import RnnModel
 from piano_roll_to_pretty_midi import piano_roll_to_pretty_midi
+from numpy_to_midiutil import make_midi
 
 assert sys.argv[1]
 assert sys.argv[2]
@@ -30,6 +31,4 @@ for _ in range(1000):
     next_notes = output > t.rand(data_width)
     song = np.append(song, next_notes, axis=0)
 
-midi = piano_roll_to_pretty_midi(np.transpose(song), fs=4)
-print(midi)
-midi.write(sys.argv[2])
+make_midi(song, sys.argv[2])
