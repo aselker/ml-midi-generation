@@ -34,8 +34,8 @@ def prep_data(seq, data_width):
         padded[i, :l] = seq[i][:l]
 
     # Create input and target datasets
-    input_padded = [x[:-1] for x in padded]
-    target_padded = [x[1:] for x in padded]
+    input_padded = np.array([x[:-1] for x in padded])
+    target_padded = np.array([x[1:] for x in padded])
 
     input_padded = t.Tensor(input_padded)
     target_padded = t.Tensor(target_padded)
