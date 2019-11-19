@@ -48,9 +48,9 @@ def prep_data(seq, data_width):
 data_width = 128
 state_size = 200
 n_layers = 4
-n_epochs = 20
-n_batches = 40
-test_portion = 0.04
+n_epochs = 1
+n_batches = 2
+test_portion = 0.07
 lr = 0.01
 
 all_files = midi_to_num.all_midis(sys.argv[1])
