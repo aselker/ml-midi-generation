@@ -6,6 +6,10 @@ import torch as t
 from torch import nn
 
 from rnn_model import RnnModel
+from piano_roll_to_pretty_midi import piano_roll_to_pretty_midi
+
+assert sys.argv[1]
+assert sys.argv[2]
 
 print("Loading saved model...")
 device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
@@ -20,12 +24,12 @@ model.load_state_dict(saved_data["state_dict"])
 song = np.zeros((1, data_width))
 state = t.zeros(n_layers, 1, state_size)
 
-for _ in range(100):
+for _ in range(1000):
     input_ = t.tensor([[song[-1]]], dtype=t.float32)
     output, state = model(input_, state)
     next_notes = output > t.rand(data_width)
-    print(next_notes)
     song = np.append(song, next_notes, axis=0)
 
-print(song.shape)
-# TODO: Convert matrix to midi file
+midi = piano_roll_to_pretty_midi(np.transpose(song), fs=4)
+print(midi)
+midi.write(sys.argv[2])
