@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
+
+import sys
 import numpy as np
+import pickle
 
 
 def to_one_hot(xs):
     a_s = []
     for x in xs:
-        a = [0 for _ in range(8)]
+        a = [0 for _ in range(128)]
         if a:
             a[x - 1] = 1
         a_s.append(a)
@@ -78,4 +81,8 @@ ode_to_joy = to_one_hot(
         1,
         1,
     ]
+    * 20
 )
+
+
+pickle.dump(ode_to_joy, open(sys.argv[1], "wb"))
