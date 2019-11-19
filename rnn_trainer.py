@@ -31,9 +31,9 @@ def prep_data(seq, data_width):
         pad_token = -1
         current_batch_size = len(seq)
         padded = np.ones((current_batch_size, max(seq_lens), data_width)) * pad_token
-        return padded
+        return seq_lens, padded
 
-    padded = first_part()
+    seq_lens, padded = first_part()
 
     def second_part():
         for i, l in enumerate(seq_lens):

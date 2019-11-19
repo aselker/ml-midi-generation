@@ -1,2 +1,3 @@
 magenta_venv/*
 *.mid
+__pycache__
