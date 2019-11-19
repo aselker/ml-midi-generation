@@ -48,9 +48,9 @@ def prep_data(seq, data_width):
 data_width = 128
 state_size = 200
 n_layers = 4
-n_epochs = 20
-n_batches = 40
-test_portion = 0.04
+n_epochs = 1
+n_batches = 2
+test_portion = 0.07
 lr = 0.01
 
 all_files = midi_to_num.all_midis(sys.argv[1])
@@ -108,6 +108,7 @@ for epoch in range(n_epochs):
     test_state = t.zeros(n_layers, len(test_data), state_size)
     test_state = test_state.to(device)
     test_output, _ = model(test_input, test_state)
+    test_loss = loss_criterion(test_output.view(-1), test_target.view(-1))
     del (songs, test_data, test_input, test_target)  # Save a little memory
 
     if epoch % 1 == 0:
