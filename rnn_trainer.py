@@ -49,12 +49,14 @@ def prep_data(seq, data_width):
 data_width = 128
 state_size = 200
 n_layers = 4
-n_epochs = 1
-n_batches = 2
-test_portion = 0.07
-lr = 0.01
+n_epochs = 5
+n_batches = 50
+test_portion = 0.04
+lr = 0.001
 
-all_files = midi_to_num.all_midis(sys.argv[1])
+all_files = all_pklmidis(sys.argv[1])
+all_files = unpkl(all_files)
+random.shuffle(all_files)
 data_count = len(all_files)
 print("Using {} files".format(data_count))
 
@@ -81,13 +83,13 @@ for epoch in range(n_epochs):
     shuffled_files = all_files
     random.shuffle(shuffled_files)
     batches = []
+
     for size in batch_sizes:
         batches.append(shuffled_files[-size:])
         shuffled_files = shuffled_files[:-size]
 
     for i, file_names in enumerate(batches):
-        songs = midi_to_num.midi_to_num(file_names)
-        seq = list(songs.values())
+        seq = list(file_names)
 
         input_padded, target_padded = prep_data(seq, data_width)
         # Run the model
@@ -103,14 +105,13 @@ for epoch in range(n_epochs):
         optimizer.step()
         print("Finished batch {}.".format(i))
 
-    songs = midi_to_num.midi_to_num(test_files)
-    test_data = list(songs.values())
+    test_data = list(test_files)
     test_input, test_target = prep_data(test_data, data_width)
     test_state = t.zeros(n_layers, len(test_data), state_size)
     test_state = test_state.to(device)
     test_output, _ = model(test_input, test_state)
     test_loss = loss_criterion(test_output.view(-1), test_target.view(-1))
-    del (songs, test_data, test_input, test_target)  # Save a little memory
+    del (test_data, test_input, test_target)  # Save a little memory
 
     if epoch % 1 == 0:
         print(
@@ -120,5 +121,4 @@ for epoch in range(n_epochs):
         )
 
 params = [data_width, data_width, state_size, n_layers]
-
 t.save({"state_dict": model.state_dict(), "params": params}, sys.argv[2])
