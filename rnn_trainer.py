@@ -11,6 +11,7 @@ import torch.utils.data
 import pickle
 import random
 
+from unpkl import unpkl, all_pklmidis
 import midi_to_num
 from rnn_model import RnnModel
 
@@ -49,9 +50,9 @@ def prep_data(seq, data_width):
 data_width = 128
 state_size = 200
 n_layers = 4
-n_epochs = 5
-n_batches = 50
-test_portion = 0.04
+n_epochs = 20
+n_batches = 1
+test_portion = 0.4
 lr = 0.001
 
 all_files = all_pklmidis(sys.argv[1])
