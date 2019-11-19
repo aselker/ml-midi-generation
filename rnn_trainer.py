@@ -24,24 +24,36 @@ device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
 def prep_data(seq, data_width):
     # Even out the lengths of input_seq and target_seq
     # See https://towardsdatascience.com/taming-lstms-variable-sized-mini-batches-and-why-pytorch-is-good-for-your-health-61d35642972e
-    seq_lens = [len(s) for s in seq]
-    pad_token = -1
-    current_batch_size = len(seq)
-    padded = np.ones((current_batch_size, max(seq_lens), data_width)) * pad_token
 
-    for i, l in enumerate(seq_lens):
-        padded[i, :l] = seq[i][:l]
+    # Nonce functions defined for profiling
+    def first_part():
+        seq_lens = [len(s) for s in seq]
+        pad_token = -1
+        current_batch_size = len(seq)
+        padded = np.ones((current_batch_size, max(seq_lens), data_width)) * pad_token
+        return seq_lens, padded
 
-    # Create input and target datasets
-    input_padded = [x[:-1] for x in padded]
-    target_padded = [x[1:] for x in padded]
+    seq_lens, padded = first_part()
 
-    input_padded = t.Tensor(input_padded)
-    target_padded = t.Tensor(target_padded)
-    input_padded = input_padded.to(device)
-    target_padded = target_padded.to(device)
+    def second_part():
+        for i, l in enumerate(seq_lens):
+            padded[i, :l] = seq[i][:l]
 
-    return input_padded, target_padded
+    second_part()
+
+    def third_part():
+        # Create input and target datasets
+        input_padded = [x[:-1] for x in padded]
+        target_padded = [x[1:] for x in padded]
+
+        input_padded = t.Tensor(input_padded)
+        target_padded = t.Tensor(target_padded)
+        input_padded = input_padded.to(device)
+        target_padded = target_padded.to(device)
+
+        return input_padded, target_padded
+
+    return third_part()
 
 
 # Define parameters
