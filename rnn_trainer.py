@@ -97,9 +97,7 @@ for epoch in range(n_epochs):
         print("Running model...")
         optimizer.zero_grad()
         # Initialize the state to zeros
-        state = t.zeros(1, n_layers, len(seq), state_size)
-        state = state.to(device)
-        output, _ = model(input_padded)  # , state)
+        output, _ = model(input_padded)
 
         loss = loss_criterion(output.view(-1), target_padded.view(-1))
         loss.backward()
@@ -108,9 +106,7 @@ for epoch in range(n_epochs):
 
     test_data = list(test_files)
     test_input, test_target = prep_data(test_data, data_width)
-    test_state = t.zeros(n_layers, len(test_data), state_size)
-    test_state = test_state.to(device)
-    test_output, _ = model(test_input, test_state)
+    test_output, _ = model(test_input)
     test_loss = loss_criterion(test_output.view(-1), test_target.view(-1))
     del (test_data, test_input, test_target)  # Save a little memory
 
