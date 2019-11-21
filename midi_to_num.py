@@ -15,6 +15,13 @@ def midi_to_num(midifiles):
         except IOError:
             continue
         piano_roll = midi.instruments[0].get_piano_roll()
+
+        notes_that_exist = np.nonzero(np.sum(piano_roll, axis=1))
+        lowest_note = np.argmin(notes_that_exist)
+        highest_note = lowest_note + 50
+
+        piano_roll = piano_roll[lowest_note:highest_note]
+
         piano_roll = np.transpose(piano_roll)
         dict_notes[i] = piano_roll
     return dict_notes
