@@ -9,11 +9,12 @@ class RnnModel(nn.Module):
         self.n_layers = n_layers
 
         # Recurrent layer
-        self.rnn = nn.RNN(input_size, state_size, n_layers, batch_first=True)
+        # self.rnn = nn.RNN(input_size, state_size, n_layers, batch_first=True)
+        self.rnn = nn.LSTM(input_size, state_size, n_layers, batch_first=True)
         # FC layer
         self.fc = nn.Linear(state_size, output_size)
 
-    def forward(self, x, state):
+    def forward(self, x, state=None):
         batch_size = x.size(0)
 
         # Run the RNN, producing outputs and a final state (I think)

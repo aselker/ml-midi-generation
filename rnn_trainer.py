@@ -97,9 +97,9 @@ for epoch in range(n_epochs):
         print("Running model...")
         optimizer.zero_grad()
         # Initialize the state to zeros
-        state = t.zeros(n_layers, len(seq), state_size)
+        state = t.zeros(1, n_layers, len(seq), state_size)
         state = state.to(device)
-        output, _ = model(input_padded, state)
+        output, _ = model(input_padded)  # , state)
 
         loss = loss_criterion(output.view(-1), target_padded.view(-1))
         loss.backward()
