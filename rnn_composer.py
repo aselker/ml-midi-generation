@@ -28,7 +28,17 @@ state = t.zeros(n_layers, 1, state_size)
 for _ in range(1000):
     input_ = t.tensor([[song[-1]]], dtype=t.float32)
     output, state = model(input_, state)
-    next_notes = output > t.rand(data_width)
+
+    output_fuzzy = output.detach().numpy()
+    output_fuzzy += np.random.rand(data_width) * 0.9
+    argsorted = output_fuzzy.argsort()
+    notes_to_play = argsorted[0][-4:]
+    next_notes = np.zeros(data_width)
+    for note in notes_to_play:
+        next_notes[note] = 1
+    next_notes = [next_notes]
+    print(next_notes)
+
     song = np.append(song, next_notes, axis=0)
 
 make_midi(song, sys.argv[2])
