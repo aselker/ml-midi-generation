@@ -16,6 +16,8 @@ def midi_to_num(midifiles):
             continue
         piano_roll = midi.instruments[0].get_piano_roll()
 
+        # TODO: Check if the song is empty
+
         notes_that_exist = np.nonzero(np.sum(piano_roll, axis=1))
         lowest_note = np.argmin(notes_that_exist)
         highest_note = lowest_note + 50

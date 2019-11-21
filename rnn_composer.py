@@ -25,12 +25,12 @@ model.load_state_dict(saved_data["state_dict"])
 song = np.zeros((1, data_width))
 state = t.zeros(n_layers, 1, state_size)
 
-for _ in range(1000):
+for i in range(1000):
     input_ = t.tensor([[song[-1]]], dtype=t.float32)
     output, state = model(input_, state)
 
     output_fuzzy = output.detach().numpy()
-    output_fuzzy += np.random.rand(data_width) * 0.9
+    output_fuzzy += np.random.rand(data_width) * (2 * (1 + np.sin(i * 2 * np.pi / 16)))
     argsorted = output_fuzzy.argsort()
     notes_to_play = argsorted[0][-4:]
     next_notes = np.zeros(data_width)

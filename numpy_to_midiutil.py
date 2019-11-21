@@ -5,11 +5,13 @@ import numpy as np
 
 
 def make_midi(song, filename):
-
     my_midi = midiutil.MIDIFile(1)
     track = 0
     channel = 0
     volume = 100
+
+    song = np.pad(song, [(0, 0), (39, 39)])
+    print(song.shape)
 
     notes = get_note_properties(song)
     for pitch, start_time, duration in notes:
