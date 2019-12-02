@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+
 import os, os.path
 import pickle
+import multiprocessing as mp
 
 
 def all_pklmidis(rootdir):
@@ -12,9 +14,19 @@ def all_pklmidis(rootdir):
     return pickle_files
 
 
+def f(pair):
+    i, l = pair
+    print("Unpickling file {}.".format(i))
+    return pickle.load(open(l, "rb"))
+
+
 def unpkl(midis):
-    files = []
-    for i, l in enumerate(midis):
-        print("Unpickling file {}.".format(i))
-        files.append(pickle.load(open(l, "rb")))
+
+    # files = []
+    # for i, l in enumerate(midis):
+    # print("Unpickling file {}.".format(i))
+    # files.append(pickle.load(open(l, "rb")))
+
+    pool = mp.Pool(processes=mp.cpu_count())
+    files = pool.map(f, enumerate(midis))
     return files
