@@ -21,12 +21,6 @@ def f(pair):
 
 
 def unpkl(midis):
-
-    # files = []
-    # for i, l in enumerate(midis):
-    # print("Unpickling file {}.".format(i))
-    # files.append(pickle.load(open(l, "rb")))
-
     pool = mp.Pool(processes=mp.cpu_count())
     files = pool.map(f, enumerate(midis))
     return files
