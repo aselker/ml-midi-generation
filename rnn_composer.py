@@ -23,7 +23,7 @@ model.load_state_dict(saved_data["state_dict"])
 
 
 song = np.zeros((1, data_width))
-state = t.zeros(n_layers, 1, state_size)
+state = None
 
 for i in range(1000):
     input_ = t.tensor([[song[-1]]], dtype=t.float32)
