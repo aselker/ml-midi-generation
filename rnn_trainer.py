@@ -89,6 +89,7 @@ for epoch in range(n_epochs):
         batches.append(shuffled_files[-size:])
         shuffled_files = shuffled_files[:-size]
 
+    losses = []
     for i, file_names in enumerate(batches):
         seq = list(file_names)
 
@@ -102,6 +103,7 @@ for epoch in range(n_epochs):
         loss = loss_criterion(output.view(-1), target_padded.view(-1))
         loss.backward()
         optimizer.step()
+        losses.append(loss.item())
         print("Finished batch {}.".format(i))
 
     test_data = list(test_files)
@@ -113,7 +115,7 @@ for epoch in range(n_epochs):
     if epoch % 1 == 0:
         print(
             "Epoch {}; training loss: {}  Testing loss: {}".format(
-                epoch, loss.item(), test_loss.item()
+                epoch, np.mean(losses), test_loss.item()
             )
         )
 
